@@ -5,6 +5,10 @@ from app.models import Survey, User, Question
 from app.schemas import SurveySchema, QuestionSchema
 from marshmallow import ValidationError
 from mongoengine.errors import ValidationError as MongoValidationError
+from flasgger import swag_from
+import os
+
+SWAGGER_YAML_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'docs')
 
 surveys_bp = Blueprint('surveys', __name__)
 surveys_api = Api(surveys_bp)
@@ -21,6 +25,7 @@ def admin_required(fn):
     return wrapper
 
 class SurveyListResource(Resource):
+    @swag_from(os.path.join(SWAGGER_YAML_DIR, 'survey_list.yml'))
     @jwt_required()
     def get(self):
         page = int(request.args.get('page', 1))
@@ -39,6 +44,7 @@ class SurveyListResource(Resource):
         }
         return jsonify(result)
 
+    @swag_from(os.path.join(SWAGGER_YAML_DIR, 'survey_post.yml'))
     @admin_required
     def post(self):
         data = request.get_json()
@@ -75,6 +81,7 @@ class SurveyListResource(Resource):
         return jsonify(result), 201
 
 class SurveyResource(Resource):
+    @swag_from(os.path.join(SWAGGER_YAML_DIR, 'survey_get.yml'))
     @jwt_required()
     def get(self, survey_id):
         survey = Survey.objects(id=survey_id).first()
@@ -83,6 +90,7 @@ class SurveyResource(Resource):
         result = {'id': str(survey.id), **SurveySchema().dump(survey)}
         return jsonify(result)
 
+    @swag_from(os.path.join(SWAGGER_YAML_DIR, 'survey_put.yml'))
     @admin_required
     def put(self, survey_id):
         survey = Survey.objects(id=survey_id).first()
@@ -116,6 +124,7 @@ class SurveyResource(Resource):
         result = {'id': str(survey.id), **SurveySchema().dump(survey)}
         return jsonify(result)
 
+    @swag_from(os.path.join(SWAGGER_YAML_DIR, 'survey_delete.yml'))
     @admin_required
     def delete(self, survey_id):
         survey = Survey.objects(id=survey_id).first()
@@ -125,6 +134,7 @@ class SurveyResource(Resource):
         return {'message': 'Survey deleted.'}, 200
 
 class QuestionListResource(Resource):
+    @swag_from(os.path.join(SWAGGER_YAML_DIR, 'question_list.yml'))
     @jwt_required()
     def get(self, survey_id):
         survey = Survey.objects(id=survey_id).first()
@@ -132,6 +142,7 @@ class QuestionListResource(Resource):
             return {'message': 'Survey not found.'}, 404
         return jsonify(QuestionSchema(many=True).dump(survey.questions))
 
+    @swag_from(os.path.join(SWAGGER_YAML_DIR, 'question_post.yml'))
     @admin_required
     def post(self, survey_id):
         survey = Survey.objects(id=survey_id).first()
@@ -171,6 +182,7 @@ class QuestionListResource(Resource):
         return jsonify(QuestionSchema().dump(question)), 201
 
 class QuestionResource(Resource):
+    @swag_from(os.path.join(SWAGGER_YAML_DIR, 'question_put.yml'))
     @admin_required
     def put(self, survey_id, question_id):
         survey = Survey.objects(id=survey_id).first()
@@ -197,6 +209,7 @@ class QuestionResource(Resource):
             
         return jsonify(QuestionSchema().dump(question))
 
+    @swag_from(os.path.join(SWAGGER_YAML_DIR, 'question_delete.yml'))
     @admin_required
     def delete(self, survey_id, question_id):
         survey = Survey.objects(id=survey_id).first()
