@@ -1,0 +1,64 @@
+---
+tags:
+  - Analytics
+summary: Export survey responses
+security:
+  - BearerAuth: []
+description: |
+  Exports survey responses as CSV, Excel, or JSON. Admin or survey owner only.
+parameters:
+  - name: survey_id
+    in: path
+    required: true
+    schema:
+      type: string
+    description: Survey ID
+  - name: format
+    in: query
+    required: false
+    schema:
+      type: string
+      enum: [csv, excel, json]
+    description: Export format (default csv)
+responses:
+  200:
+    description: Exported file or JSON data
+    content:
+      text/csv:
+        schema:
+          type: string
+        example: |
+          response_id,respondent,submitted_at,q1
+          1,admin,2024-07-01T12:00:00Z,Very Satisfied
+      application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+        schema:
+          type: string
+          format: binary
+      application/json:
+        schema:
+          type: array
+          items:
+            type: object
+        example:
+          - response_id: "1"
+            respondent: "admin"
+            submitted_at: "2024-07-01T12:00:00Z"
+            q1: "Very Satisfied"
+  401:
+    description: Missing or invalid JWT.
+    content:
+      application/json:
+        example:
+          msg: Missing Authorization Header
+  403:
+    description: Admins or survey owners only.
+    content:
+      application/json:
+        example:
+          message: Admins or survey owners only.
+  404:
+    description: Survey or responses not found
+    content:
+      application/json:
+        example:
+          message: No responses found for this survey. 

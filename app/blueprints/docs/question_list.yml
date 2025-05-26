@@ -1,0 +1,45 @@
+---
+tags:
+  - Questions
+summary: List all questions for a survey
+security:
+  - BearerAuth: []
+description: |
+  Returns all questions for a given survey. Requires authentication.
+parameters:
+  - name: survey_id
+    in: path
+    required: true
+    schema:
+      type: string
+    description: Survey ID
+responses:
+  200:
+    description: List of questions
+    content:
+      application/json:
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/Question'
+        example:
+          - question_id: "q1"
+            text: "How satisfied are you with our service?"
+            type: "multiple_choice"
+            choices: ["Very Satisfied", "Satisfied", "Neutral", "Dissatisfied"]
+            min: 1
+            max: 5
+            required: true
+            order: 1
+  401:
+    description: Missing or invalid JWT.
+    content:
+      application/json:
+        example:
+          msg: Missing Authorization Header
+  404:
+    description: Survey not found
+    content:
+      application/json:
+        example:
+          message: Survey not found. 

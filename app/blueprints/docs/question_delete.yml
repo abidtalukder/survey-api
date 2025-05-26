@@ -1,0 +1,40 @@
+---
+tags:
+  - Questions
+summary: Delete a question from a survey
+security:
+  - BearerAuth: []
+description: |
+  Deletes a question from a survey. Admin only.
+parameters:
+  - name: survey_id
+    in: path
+    required: true
+    schema:
+      type: string
+    description: Survey ID
+  - name: question_id
+    in: path
+    required: true
+    schema:
+      type: string
+    description: Question ID
+responses:
+  200:
+    description: Question deleted
+    content:
+      application/json:
+        example:
+          message: Question deleted.
+  403:
+    description: Admins only
+    content:
+      application/json:
+        example:
+          message: Admins only.
+  404:
+    description: Survey or question not found
+    content:
+      application/json:
+        example:
+          message: Survey not found. 

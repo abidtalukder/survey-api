@@ -1,0 +1,34 @@
+---
+tags:
+  - Surveys
+summary: Delete a survey by ID
+security:
+  - BearerAuth: []
+description: |
+  Deletes a survey by its ID. Admin only.
+parameters:
+  - name: survey_id
+    in: path
+    required: true
+    schema:
+      type: string
+    description: Survey ID
+responses:
+  200:
+    description: Survey deleted
+    content:
+      application/json:
+        example:
+          message: Survey deleted.
+  403:
+    description: Admins only
+    content:
+      application/json:
+        example:
+          message: Admins only.
+  404:
+    description: Survey not found
+    content:
+      application/json:
+        example:
+          message: Survey not found. 
