@@ -10,6 +10,10 @@ from collections import defaultdict
 from functools import wraps
 import openpyxl
 from app import cache
+from flasgger import swag_from
+import os
+
+SWAGGER_YAML_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'docs')
 
 analytics_bp = Blueprint('analytics', __name__)
 analytics_api = Api(analytics_bp)
@@ -79,6 +83,7 @@ def admin_or_owner_required(fn):
     return wrapper
 
 class SurveyAnalyticsResource(Resource):
+    @swag_from(os.path.join(SWAGGER_YAML_DIR, 'analytics_get.yml'))
     @admin_or_owner_required
     @cache_response(timeout=300)
     def get(self, survey_id):
@@ -180,6 +185,7 @@ class SurveyAnalyticsResource(Resource):
         return analytics_data
 
 class SurveyCSVExportResource(Resource):
+    @swag_from(os.path.join(SWAGGER_YAML_DIR, 'analytics_export.yml'))
     @admin_or_owner_required
     def get(self, survey_id):
         survey = Survey.objects(id=survey_id).first()
