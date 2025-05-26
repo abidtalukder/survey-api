@@ -11,13 +11,14 @@ from .config import Config, TestConfig
 from flask_caching import Cache
 from .encoder import CustomJSONEncoder
 from mongoengine import disconnect
+from .swagger_config import swagger_config, swagger_template
 
 # Initialize extensions
 mongo = MongoEngine()
 jwt = JWTManager()
 bcrypt = Bcrypt()
 limiter = Limiter(key_func=get_remote_address, default_limits=None)
-swagger = Swagger()
+swagger = Swagger(template=swagger_template)
 redis_client = None
 cache = Cache()
 
@@ -45,6 +46,7 @@ def create_app(config_class=Config):
     bcrypt.init_app(app)
     CORS(app, origins=app.config.get('CORS_ORIGINS', ['*']))
     limiter.init_app(app)
+    app.config['SWAGGER'] = swagger_config
     swagger.init_app(app)
     cache.init_app(app)
 
