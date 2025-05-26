@@ -1,0 +1,62 @@
+---
+tags:
+  - Responses
+summary: Submit a response to a survey
+security:
+  - BearerAuth: []
+description: |
+  Submits a response to a survey. Requires authentication. Validates answers against survey questions.
+parameters:
+  - name: survey_id
+    in: path
+    required: true
+    schema:
+      type: string
+    description: Survey ID
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/ResponseInput'
+      example:
+        answers:
+          - question_id: "q1"
+            value: "Very Satisfied"
+          - question_id: "q2"
+            value: 5
+responses:
+  201:
+    description: Response submitted successfully
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/Response'
+        example:
+          id: "64b7c2f1e4b0f2a1b2c3d4e7"
+          survey: { ... }
+          respondent: { ... }
+          submitted_at: "2024-07-01T12:00:00Z"
+          answers:
+            - question_id: "q1"
+              value: "Very Satisfied"
+            - question_id: "q2"
+              value: 5
+  400:
+    description: Validation error
+    content:
+      application/json:
+        example:
+          message: Validation error
+  401:
+    description: Missing or invalid JWT.
+    content:
+      application/json:
+        example:
+          msg: Missing Authorization Header
+  404:
+    description: Survey not found
+    content:
+      application/json:
+        example:
+          message: Survey not found. 

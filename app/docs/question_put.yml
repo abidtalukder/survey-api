@@ -1,0 +1,69 @@
+---
+tags:
+  - Questions
+summary: Update a question in a survey
+security:
+  - BearerAuth: []
+description: |
+  Updates a question in a survey. Admin only.
+parameters:
+  - name: survey_id
+    in: path
+    required: true
+    schema:
+      type: string
+    description: Survey ID
+  - name: question_id
+    in: path
+    required: true
+    schema:
+      type: string
+    description: Question ID
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/QuestionInput'
+      example:
+        text: "How satisfied are you with our service?"
+        type: "multiple_choice"
+        choices: ["Very Satisfied", "Satisfied", "Neutral", "Dissatisfied"]
+        min: 1
+        max: 5
+        required: true
+        order: 1
+responses:
+  200:
+    description: Question updated
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/Question'
+        example:
+          question_id: "q1"
+          text: "How satisfied are you with our service?"
+          type: "multiple_choice"
+          choices: ["Very Satisfied", "Satisfied", "Neutral", "Dissatisfied"]
+          min: 1
+          max: 5
+          required: true
+          order: 1
+  400:
+    description: Validation error
+    content:
+      application/json:
+        example:
+          message: Validation error
+  403:
+    description: Admins only
+    content:
+      application/json:
+        example:
+          message: Admins only.
+  404:
+    description: Survey or question not found
+    content:
+      application/json:
+        example:
+          message: Survey not found. 

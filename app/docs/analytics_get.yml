@@ -1,0 +1,65 @@
+---
+tags:
+  - Analytics
+summary: Get analytics for a survey
+security:
+  - BearerAuth: []
+description: |
+  Returns analytics for a survey, including time series and per-question statistics. Admin or survey owner only.
+parameters:
+  - name: survey_id
+    in: path
+    required: true
+    schema:
+      type: string
+    description: Survey ID
+  - name: time_series
+    in: query
+    required: false
+    schema:
+      type: boolean
+    description: Include time series data
+  - name: interval
+    in: query
+    required: false
+    schema:
+      type: string
+      enum: [daily, weekly, monthly]
+    description: Time series interval (default daily)
+responses:
+  200:
+    description: Analytics data
+    content:
+      application/json:
+        example:
+          time_series:
+            - date: "2024-07-01"
+              count: 5
+              cumulative: 5
+          q1:
+            type: multiple_choice
+            counts:
+              "Very Satisfied": 3
+              "Satisfied": 2
+            percentages:
+              "Very Satisfied": 60.0
+              "Satisfied": 40.0
+            total_responses: 5
+  401:
+    description: Missing or invalid JWT.
+    content:
+      application/json:
+        example:
+          msg: Missing Authorization Header
+  403:
+    description: Admins or survey owners only.
+    content:
+      application/json:
+        example:
+          message: Admins or survey owners only.
+  404:
+    description: Survey not found
+    content:
+      application/json:
+        example:
+          message: Survey not found. 
