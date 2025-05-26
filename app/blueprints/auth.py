@@ -11,6 +11,7 @@ from datetime import timedelta
 from flask_jwt_extended import current_user
 from marshmallow import ValidationError
 import uuid
+from flasgger import swag_from
 
 # Blueprint and API setup
 auth_bp = Blueprint('auth', __name__)
@@ -29,6 +30,59 @@ def is_token_blacklisted(jti):
 
 # Registration Resource
 class RegisterResource(Resource):
+    @swag_from({
+        'tags': ['Authentication'],
+        'summary': 'Register a new user',
+        'description': 'Creates a new user account. Only "admin" and "respondent" roles are allowed. Returns the created user object.',
+        'requestBody': {
+            'required': True,
+            'content': {
+                'application/json': {
+                    'schema': {'$ref': '#/components/schemas/UserRegistrationInput'},
+                    'example': {
+                        'username': 'newuser',
+                        'email': 'newuser@example.com',
+                        'password': 'password123',
+                        'role': 'respondent'
+                    }
+                }
+            }
+        },
+        'responses': {
+            '201': {
+                'description': 'User created successfully.',
+                'content': {
+                    'application/json': {
+                        'schema': {'$ref': '#/components/schemas/User'},
+                        'example': {
+                            'id': '64b7c2f1e4b0f2a1b2c3d4e5',
+                            'username': 'newuser',
+                            'email': 'newuser@example.com',
+                            'role': 'respondent',
+                            'created_at': '2024-07-01T12:00:00Z',
+                            'updated_at': '2024-07-01T12:00:00Z'
+                        }
+                    }
+                }
+            },
+            '400': {
+                'description': 'Validation error.',
+                'content': {
+                    'application/json': {
+                        'example': {'message': 'Validation error', 'errors': {'email': ['Not a valid email address.']}}
+                    }
+                }
+            },
+            '409': {
+                'description': 'Username or email already exists.',
+                'content': {
+                    'application/json': {
+                        'example': {'message': 'Username already exists.'}
+                    }
+                }
+            }
+        }
+    })
     def post(self):
         data = request.get_json()
         try:
@@ -54,6 +108,60 @@ class RegisterResource(Resource):
 
 # Login Resource
 class LoginResource(Resource):
+    @swag_from({
+        'tags': ['Authentication'],
+        'summary': 'Authenticate user and obtain JWT tokens',
+        'description': 'Authenticates a user and returns access and refresh JWT tokens along with user info.',
+        'requestBody': {
+            'required': True,
+            'content': {
+                'application/json': {
+                    'schema': {'$ref': '#/components/schemas/UserLoginInput'},
+                    'example': {
+                        'username': 'admin',
+                        'password': 'adminpass'
+                    }
+                }
+            }
+        },
+        'responses': {
+            '200': {
+                'description': 'Login successful. Returns JWT tokens and user info.',
+                'content': {
+                    'application/json': {
+                        'example': {
+                            'access_token': '<JWT access token>',
+                            'refresh_token': '<JWT refresh token>',
+                            'user': {
+                                'id': '64b7c2f1e4b0f2a1b2c3d4e5',
+                                'username': 'admin',
+                                'email': 'admin@example.com',
+                                'role': 'admin',
+                                'created_at': '2024-07-01T12:00:00Z',
+                                'updated_at': '2024-07-01T12:00:00Z'
+                            }
+                        }
+                    }
+                }
+            },
+            '400': {
+                'description': 'Validation error.',
+                'content': {
+                    'application/json': {
+                        'example': {'message': 'Validation error', 'errors': {'username': ['Missing data for required field.']}}
+                    }
+                }
+            },
+            '401': {
+                'description': 'Invalid username or password.',
+                'content': {
+                    'application/json': {
+                        'example': {'message': 'Invalid username or password.'}
+                    }
+                }
+            }
+        }
+    })
     def post(self):
         data = request.get_json()
         try:
@@ -73,6 +181,30 @@ class LoginResource(Resource):
 
 # Logout Resource (JWT Blacklist)
 class LogoutResource(Resource):
+    @swag_from({
+        'tags': ['Authentication'],
+        'summary': 'Logout user (JWT Blacklist)',
+        'description': 'Logs out the current user by blacklisting the JWT. Requires a valid JWT access token.',
+        'security': [{'BearerAuth': []}],
+        'responses': {
+            '200': {
+                'description': 'Successfully logged out.',
+                'content': {
+                    'application/json': {
+                        'example': {'message': 'Successfully logged out.'}
+                    }
+                }
+            },
+            '401': {
+                'description': 'Missing or invalid JWT.',
+                'content': {
+                    'application/json': {
+                        'example': {'msg': 'Missing Authorization Header'}
+                    }
+                }
+            }
+        }
+    })
     @jwt_required()
     def post(self):
         jwt_data = get_jwt()
@@ -85,6 +217,46 @@ class LogoutResource(Resource):
 
 # Profile Resource
 class ProfileResource(Resource):
+    @swag_from({
+        'tags': ['Authentication'],
+        'summary': 'Get current user profile',
+        'description': 'Returns the profile of the currently authenticated user. Requires a valid JWT access token.',
+        'security': [{'BearerAuth': []}],
+        'responses': {
+            '200': {
+                'description': 'User profile returned.',
+                'content': {
+                    'application/json': {
+                        'schema': {'$ref': '#/components/schemas/User'},
+                        'example': {
+                            'id': '64b7c2f1e4b0f2a1b2c3d4e5',
+                            'username': 'admin',
+                            'email': 'admin@example.com',
+                            'role': 'admin',
+                            'created_at': '2024-07-01T12:00:00Z',
+                            'updated_at': '2024-07-01T12:00:00Z'
+                        }
+                    }
+                }
+            },
+            '401': {
+                'description': 'Token has been revoked or is missing.',
+                'content': {
+                    'application/json': {
+                        'example': {'message': 'Token has been revoked.'}
+                    }
+                }
+            },
+            '404': {
+                'description': 'User not found.',
+                'content': {
+                    'application/json': {
+                        'example': {'message': 'User not found.'}
+                    }
+                }
+            }
+        }
+    })
     @jwt_required()
     def get(self):
         jwt_data = get_jwt()
