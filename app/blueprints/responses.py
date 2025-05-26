@@ -5,6 +5,10 @@ from app.models import Response, Survey, User, Answer
 from app.schemas import ResponseSchema
 from marshmallow import ValidationError
 from datetime import datetime
+from flasgger import swag_from
+import os
+
+SWAGGER_YAML_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'docs')
 
 responses_bp = Blueprint('responses', __name__)
 responses_api = Api(responses_bp)
@@ -27,6 +31,7 @@ def admin_or_owner_required(fn):
     return wrapper
 
 class ResponseListResource(Resource):
+    @swag_from(os.path.join(SWAGGER_YAML_DIR, 'response_post.yml'))
     @jwt_required()
     def post(self, survey_id):
         user_id = get_jwt_identity()
@@ -82,6 +87,7 @@ class ResponseListResource(Resource):
         result = {'id': str(response.id), **ResponseSchema().dump(response)}
         return jsonify(result), 201
 
+    @swag_from(os.path.join(SWAGGER_YAML_DIR, 'response_list.yml'))
     @admin_or_owner_required
     def get(self, survey_id):
         page = int(request.args.get('page', 1))
@@ -101,6 +107,7 @@ class ResponseListResource(Resource):
         return jsonify(result)
 
 class ResponseResource(Resource):
+    @swag_from(os.path.join(SWAGGER_YAML_DIR, 'response_get.yml'))
     @admin_or_owner_required
     def get(self, survey_id, response_id):
         response = Response.objects(id=response_id, survey=survey_id).first()
